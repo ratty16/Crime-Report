@@ -1,0 +1,431 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import OneHotEncoder
+import warnings
+warnings.filterwarnings('ignore')
+import matplotlib.pyplot as plt
+import plotly.express as px
+from sklearn.preprocessing import LabelEncoder
+
+df = pd.read_csv('/Users/ratty/Documents/Python Project/Filtereddata.csv')
+df['Date Rptd'] = pd.to_datetime(df['Date Rptd'], format='%m/%d/%y')
+df['DATE OCC'] = pd.to_datetime(df['DATE OCC'], format='%m/%d/%y')
+
+# group the data by area name
+area_groups = df.groupby('AREA NAME')
+# count the number of occurrences for each area name
+area_counts = area_groups.size()
+# create a bar chart of the area counts
+plt.bar(area_counts.index, area_counts.values)
+# add labels to the chart
+plt.title('Crime Counts by Area')
+plt.xlabel('Area Name')
+plt.ylabel('Count')
+plt.legend(['Crime Counts'])
+# rotate x-axis labels by 90 degrees
+plt.xticks(rotation=90)
+# display the chart
+plt.show()
+
+plt.hist(df['Vict Age'], bins=20)
+plt.title('Distribution of Victim Ages')
+plt.xlabel('Age')
+plt.ylabel('Count')
+plt.show()
+
+# group the data by area name
+area_groups = df.groupby('Vict Sex')
+# count the number of occurrences for each area name
+area_counts = area_groups.size()
+# create a bar chart of the area counts
+plt.bar(area_counts.index, area_counts.values)
+# add labels to the chart
+plt.title('Victim Gender')
+plt.xlabel('Gender of the Victim')
+plt.ylabel('Count')
+plt.legend(['Gender'])
+# rotate x-axis labels by 90 degrees
+plt.xticks(rotation=90)
+# display the chart
+plt.show()
+
+# group the data by part 1-2
+part_groups = df.groupby('Part 1-2')
+# count the number of occurrences for each part
+part_counts = part_groups.size()
+# define the colors for the pie chart
+colors = ['#88CCEE', '#CC6677']
+# create a pie chart of the part counts using the defined colors
+plt.pie(part_counts.values, labels=part_counts.index, colors=colors, autopct='%1.1f%%')
+# add a title
+plt.title('Crime Severity')
+# add a legend
+plt.legend(['Violent/Property Crimes', 'Other Crimes'])
+# display the chart
+plt.show()
+
+# create a scatter plot
+fig = px.scatter(df, x='Vict Age', y='Vict Sex', color='Vict Sex')
+# add a geo map of Los Angeles
+fig.update_layout(
+    title='Correlation between Victim Age and Gender in Los Angeles',
+    geo_scope='usa',
+    mapbox_style="carto-positron",
+    mapbox_zoom=10,
+    mapbox_center = {"lat": 34.0522, "lon": -118.2437},
+)
+# show the plot
+fig.show()
+
+# create a scatter plot
+fig = px.scatter(df, x='AREA', y='Status')
+# add a geo map of Los Angeles
+fig.update_layout(
+    title='Correlation between Area and Status',
+    geo_scope='usa',
+    mapbox_style="carto-positron",
+    mapbox_zoom=10,
+    mapbox_center = {"lat": 34.0522, "lon": -118.2437},
+)
+# show the plot
+fig.show()
+
+# create a scatter plot
+fig = px.scatter(df, x='AREA', y='Status')
+# add a geo map of Los Angeles
+fig.update_layout(
+    title='Correlation between Area and Status',
+    geo_scope='usa',
+    mapbox_style="carto-positron",
+    mapbox_zoom=10,
+    mapbox_center = {"lat": 34.0522, "lon": -118.2437},
+)
+# show the plot
+fig.show()
+
+
+# Extract the year from each date and create a new column for the year
+df["Year"] = df["DATE OCC"].dt.year
+# Group the records by year and count the number of crimes in each year
+crime_counts = df.groupby("Year").size()
+# Plot the number of crimes per year
+crime_counts.plot(kind="bar")
+plt.xlabel("Year")
+plt.ylabel("Number of crimes")
+plt.show()
+
+# Create a bubble chart using plotly express
+fig = px.scatter_mapbox(df, lat="LAT", lon="LON", color="Crm Cd Desc", size="Crm Cd", zoom=10,
+                        mapbox_style="carto-positron", hover_name="Crm Cd Desc",
+                        center={"lat": df['LAT'].mean(), "lon": df['LON'].mean()},
+                        opacity=0.8, width=1000, height=600)
+
+fig.update_layout(title='Crime Incidents by Location and Type')
+fig.show()
+
+
+# Load the dataset into a pandas dataframe
+crime_data = df
+# Convert the "DATE OCC" column to a datetime format
+crime_data["DATE OCC"] = pd.to_datetime(crime_data["DATE OCC"], format='%m/%d/%Y')
+# Convert the date columns to datetime format
+crime_data["DATE OCC"] = pd.to_datetime(crime_data["DATE OCC"])
+crime_data["Year"] = crime_data["DATE OCC"].dt.year
+crime_data["Month"] = crime_data["DATE OCC"].dt.month
+# Group the data by year and month and count the number of incidents
+monthly_crime_counts = crime_data.groupby(["Year", "Month"]).size().reset_index(name="counts")
+# Plot the monthly crime counts over time
+plt.plot(monthly_crime_counts["counts"])
+plt.xlabel("Year")
+plt.ylabel("Number of incidents")
+plt.show()
+crime_type_counts = crime_data.groupby("Crm Cd Desc").size()
+# Sort the values in descending order
+crime_type_counts.sort_values(ascending=False, inplace=True)
+# Plot the crime type counts as a horizontal bar chart
+fig, ax = plt.subplots(figsize=(20,20))
+ax.barh(crime_type_counts.index, crime_type_counts.values)
+ax.set_xlabel("Number of incidents")
+ax.set_ylabel("Crime type")
+ax.set_title("Top crimes in the dataset")
+plt.show()
+
+
+# create a label encoder object
+le = LabelEncoder()
+df1 = df
+# encode the categorical variables
+df1['Vict Sex'] = le.fit_transform(df1['Vict Sex'])
+df1['Vict Descent'] = le.fit_transform(df1['Vict Descent'])
+df1['Premis Desc'] = le.fit_transform(df1['Premis Desc'])
+df1['Status'] = le.fit_transform(df1['Status'])
+
+df1 = df1.drop('Crm Cd Desc',axis = 1)
+df1 = df1.drop('Weapon Desc',axis = 1)
+df1 = df1.drop('Status Desc',axis = 1)
+df1 = df1.drop('LOCATION',axis = 1)
+df1 = df1.drop('AREA NAME',axis = 1)
+cols = ['DR_NO','AREA', 'Rpt Dist No', 'Part 1-2', 'Crm Cd', 'Vict Age', 'Weapon Used Cd', 'Crm Cd 1', 'LAT', 'LON']
+df1[cols] = df1[cols].astype(int)
+df1["Date Rptd"] = pd.to_datetime(df1["Date Rptd"]).astype(int)
+df1["DATE OCC"] = pd.to_datetime(df1["DATE OCC"]).astype(int)
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+
+
+# Preprocessing: Select the relevant features and preprocess them if necessary
+X = df[['Vict Age', 'Vict Sex','AREA','Weapon Used Cd', 'Status Desc']]
+y = df['Part 1-2']
+
+# Preprocessing: Convert categorical variables into binary using one-hot encoding
+X = pd.get_dummies(X, columns=['Vict Sex', 'AREA', 'Weapon Used Cd', 'Status Desc'])
+
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Build the logistic regression model
+lr = LogisticRegression()
+lr.fit(X_train, y_train)
+
+# Evaluate the model on the testing set
+y_pred = lr.predict(X_test)
+print(classification_report(y_test, y_pred))
+
+# Calculate the confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+
+# Plot the confusion matrix as a heatmap
+sns.heatmap(cm, annot=True, cmap='Blues', fmt='g')
+
+# Set the axis labels and title
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix')
+
+# Show the plot
+plt.show()
+
+# Calculate the overall accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print('Overall Accuracy of Logistic regression:', accuracy)
+
+# Preprocessing: Select the relevant features and preprocess them if necessary
+X = df[['Vict Age', 'Vict Sex','AREA','Weapon Used Cd', 'Status Desc']]
+y = df['Part 1-2']
+
+# Preprocessing: Convert categorical variables into binary using one-hot encoding
+X = pd.get_dummies(X, columns=['Vict Sex', 'AREA', 'Weapon Used Cd', 'Status Desc'])
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Build the Random Forest classifier
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+rf.fit(X_train, y_train)
+# Evaluate the model on the testing set
+y_pred = rf.predict(X_test)
+print(classification_report(y_test, y_pred))
+# Calculate the confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+# Plot the confusion matrix as a heatmap
+sns.heatmap(cm, annot=True, cmap='Blues', fmt='g')
+
+# Set the axis labels and title
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix')
+
+# Show the plot
+plt.show()
+
+# Calculate the overall accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print('Overall Accuracy of Random Forest:', accuracy)
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+
+# Preprocessing: Select the relevant features and preprocess them if necessary
+X = df[['Vict Age', 'Vict Sex','AREA','Weapon Used Cd', 'Status Desc']]
+y = df['Part 1-2']
+
+# Preprocessing: Convert categorical variables into binary using one-hot encoding
+X = pd.get_dummies(X, columns=['Vict Sex', 'AREA', 'Weapon Used Cd', 'Status Desc'])
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Build the KNN model
+knn = KNeighborsClassifier(n_neighbors=5)
+knn.fit(X_train, y_train)
+
+# Evaluate the model on the testing set
+y_pred = knn.predict(X_test)
+print(classification_report(y_test, y_pred))
+
+# Calculate the confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+
+# Plot the confusion matrix as a heatmap
+sns.heatmap(cm, annot=True, cmap='Blues', fmt='g')
+
+# Set the axis labels and title
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix')
+
+# Show the plot
+plt.show()
+
+# Calculate the overall accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print('Overall Accuracy of KNN:', accuracy)
+
+
+from sklearn import svm
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+
+
+# Preprocessing: Select the relevant features and preprocess them if necessary
+X = df[['Vict Age', 'Vict Sex','AREA','Weapon Used Cd', 'Status Desc']]
+y = df['Part 1-2']
+
+# Preprocessing: Convert categorical variables into binary using one-hot encoding
+X = pd.get_dummies(X, columns=['Vict Sex', 'AREA', 'Weapon Used Cd', 'Status Desc'])
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Build the SVM model
+svm = svm.SVC(kernel='linear')
+svm.fit(X_train, y_train)
+
+# Evaluate the model on the testing set
+y_pred = svm.predict(X_test)
+print(classification_report(y_test, y_pred))
+
+# Calculate the confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+
+# Plot the confusion matrix as a heatmap
+sns.heatmap(cm, annot=True, cmap='Blues', fmt='g')
+
+# Set the axis labels and title
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix')
+
+# Show the plot
+plt.show()
+
+# Calculate the overall accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print('Overall Accuracy of SVM:', accuracy)
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+
+# Preprocessing: Select the relevant features and preprocess them if necessary
+X = df[['Vict Age', 'Vict Sex','AREA','Weapon Used Cd', 'Status Desc']]
+y = df['Part 1-2']
+
+# Preprocessing: Convert categorical variables into binary using one-hot encoding
+X = pd.get_dummies(X, columns=['Vict Sex', 'AREA', 'Weapon Used Cd', 'Status Desc'])
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Build the decision tree model
+dt = DecisionTreeClassifier()
+dt.fit(X_train, y_train)
+
+# Evaluate the model on the testing set
+y_pred = dt.predict(X_test)
+print(classification_report(y_test, y_pred))
+
+# Calculate the confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+
+# Plot the confusion matrix as a heatmap
+sns.heatmap(cm, annot=True, cmap='Blues', fmt='g')
+
+# Set the axis labels and title
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix')
+
+# Show the plot
+plt.show()
+
+# Calculate the overall accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print('Overall Accuracy of Decision tree:', accuracy)
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+
+# Preprocessing: Select the relevant features and preprocess them if necessary
+X = df[['Vict Age', 'Vict Sex','AREA','Weapon Used Cd', 'Status Desc']]
+y = df['Part 1-2']
+
+# Preprocessing: Convert categorical variables into binary using one-hot encoding
+X = pd.get_dummies(X, columns=['Vict Sex', 'AREA', 'Weapon Used Cd', 'Status Desc'])
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Build the Naive Bayes classifier
+nb = GaussianNB()
+nb.fit(X_train, y_train)
+
+# Evaluate the model on the testing set
+y_pred = nb.predict(X_test)
+print(classification_report(y_test, y_pred))
+
+# Calculate the confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+
+# Plot the confusion matrix as a heatmap
+sns.heatmap(cm, annot=True, cmap='Blues', fmt='g')
+
+# Set the axis labels and title
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix')
+
+# Show the plot
+plt.show()
+
+# Calculate the overall accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print('Overall Accuracy:', accuracy)
